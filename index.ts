@@ -1,6 +1,8 @@
 import { httpServer } from './src/http_server/index';
 import { WebSocketServer } from 'ws';
 
+import { createWebSocketStream } from 'ws';
+
 import { 
   mouseUp, mouseDown, mouseLeft, mouseRight 
 } from './src/robotjs/mouseMove';
@@ -18,37 +20,39 @@ httpServer.listen(HTTP_PORT);
 
 const wsServer = new WebSocketServer({ port: 8080 });
 
-wsServer.on('connection', wsClient => {
-  console.log(`Connection accepted`);
+wsServer.on('connection', (wsClient) => {
 
-  wsClient.on('message', (message) => {
+  console.log('Client connected');
 
-    const [ command, ...params ] = message.toString().split(' ');
-    console.log('<- ' + message.toString() + '\0');
+  const duplex = createWebSocketStream(wsClient, {encoding: 'utf-8'});
+
+  duplex.on('data', (data) => {
+    const [ command, ...params ] = data.toString().split(' ');
+    console.log(`<- ${data} \0`);
     switch(command) {
       case 'mouse_up':
         mouseUp(+params[0]);
-        wsClient.send(`${command}`);
+        wsClient.send(command);
         break;
       case 'mouse_down':
         mouseDown(+params[0]);
-        wsClient.send(`${command}`);
+        wsClient.send(command);
         break;
       case 'mouse_left':
         mouseLeft(+params[0]);
-        wsClient.send(`${command}`);
+        wsClient.send(command);
         break;
       case 'mouse_right':
         mouseRight(+params[0]);
-        wsClient.send(`${command}`);
+        wsClient.send(command);
         break;
       case 'draw_circle':
         drawCircle(+params[0]);   
-        wsClient.send(`${command}`);
+        wsClient.send(command);
         break;
       case 'draw_rectangle':
         drawRectangle(+params[0], +params[1]);     
-        wsClient.send(`${command}`);    
+        wsClient.send(command);    
         break;
       case 'draw_square':
         drawRectangle(+params[0], +params[0]);     
@@ -70,16 +74,20 @@ wsServer.on('connection', wsClient => {
       default:
         console.log('Invalid input');
     }
+  });
 
+  duplex.on('close', () => {
+    console.log('Duplex channel has closed');
   });
 
   wsClient.on('close', () => {
     console.log('Client disconnected');
+    duplex.end();
   });
+});
 
-  wsServer.on('SIGINT', () => {
-    console.log('WebSocket server is closing');
-    wsServer.close();
-    process.exit(0);
-  })
+wsServer.on('close', () => {
+  console.log('wsServer has closed');
+  
+  process.exit();
 });
