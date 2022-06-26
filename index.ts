@@ -48,6 +48,10 @@ wsServer.on('connection', wsClient => {
         drawRectangle(+params[0], +params[1]);     
         wsClient.send(`${command}`);    
         break;
+      case 'draw_square':
+        drawRectangle(+params[0], +params[0]);     
+        wsClient.send(`${command}`);    
+        break;
       case 'mouse_position':
         const { x, y } = getMouseCoords();
         wsClient.send(`${command} ${x} ${y}`);  
