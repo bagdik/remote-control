@@ -19,8 +19,3 @@ export const mouseRight = (distance: number) => {
   const { x, y } = robot.getMousePos();
   robot.moveMouse(x + distance, y);
 }
-
-export const getMouseCoords = () => {
-  const { x, y } = robot.getMousePos();
-  return {x, y};
-}

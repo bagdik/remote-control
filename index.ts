@@ -2,8 +2,10 @@ import { httpServer } from './src/http_server/index';
 import { WebSocketServer } from 'ws';
 
 import { 
-  mouseUp, mouseDown, mouseLeft, mouseRight, getMouseCoords 
+  mouseUp, mouseDown, mouseLeft, mouseRight 
 } from './src/robotjs/mouseMove';
+
+import { getMouseCoords } from './src/robotjs/mousePosition';
 
 import { drawCircle, drawRectangle } from './src/robotjs/draw';
 
@@ -74,4 +76,10 @@ wsServer.on('connection', wsClient => {
   wsClient.on('close', () => {
     console.log('Client disconnected');
   });
+
+  wsServer.on('SIGINT', () => {
+    console.log('WebSocket server is closing');
+    wsServer.close();
+    process.exit(0);
+  })
 });
