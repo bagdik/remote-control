@@ -24,7 +24,10 @@ wsServer.on('connection', (wsClient) => {
 
   console.log('Client connected');
 
-  const duplex = createWebSocketStream(wsClient, {encoding: 'utf-8'});
+  const duplex = createWebSocketStream(wsClient, {
+    encoding: 'utf-8', 
+    decodeStrings: false,
+  });
 
   duplex.on('data', (data) => {
     const [ command, ...params ] = data.toString().split(' ');
@@ -32,42 +35,42 @@ wsServer.on('connection', (wsClient) => {
     switch(command) {
       case 'mouse_up':
         mouseUp(+params[0]);
-        wsClient.send(`${command}\0`);
+        duplex.write(`${command}\0`);
         break;
       case 'mouse_down':
         mouseDown(+params[0]);
-        wsClient.send(`${command}\0`);
+        duplex.write(`${command}\0`);
         break;
       case 'mouse_left':
         mouseLeft(+params[0]);
-        wsClient.send(`${command}\0`);
+        duplex.write(`${command}\0`);
         break;
       case 'mouse_right':
         mouseRight(+params[0]);
-        wsClient.send(`${command}\0`);
+        duplex.write(`${command}\0`);
         break;
       case 'draw_circle':
         drawCircle(+params[0]);   
-        wsClient.send(`${command}\0`);
+        duplex.write(`${command}\0`);
         break;
       case 'draw_rectangle':
         drawRectangle(+params[0], +params[1]);     
-        wsClient.send(`${command}\0`);  
+        duplex.write(`${command}\0`);
         break;
       case 'draw_square':
         drawRectangle(+params[0], +params[0]);     
-        wsClient.send(`${command}\0`);
+        duplex.write(`${command}\0`);
         break;
       case 'mouse_position':
         const { x, y } = getMouseCoords();
-        wsClient.send(`${command} ${x} ${y} \0`);  
+        duplex.write(`${command} ${x} ${y} \0`);
         console.log(`-> ${command} ${x}, ${y} \0`);
         break;
       case 'prnt_scrn': {
         screenCapture()
           .then((screen) => {
             console.log(`-> ${command} ${screen} \0`);
-            wsClient.send(`${command} ${screen}\0`);
+            duplex.write(`${command} ${screen} \0`);
           });
         break;
       }
